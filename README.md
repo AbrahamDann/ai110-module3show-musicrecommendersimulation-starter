@@ -2,32 +2,28 @@
 
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
-
-Your goal is to:
-
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-Replace this paragraph with your own summary of what your version does.
+This project simulates a content-based music recommender system. Given a user's taste profile — a preferred genre, mood, and energy level — the system scores every song in a CSV catalog and returns the top matches ranked by relevance. It is designed to show how real platforms like Spotify translate user preferences into ranked lists using simple math, without requiring listening history or other users' data.
 
 ---
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world platforms like Spotify combine two main strategies: **collaborative filtering** (finding users who listen to the same things as you and borrowing their taste) and **content-based filtering** (matching songs to your preferences based on audio features like tempo, energy, or mood). This simulation focuses on content-based filtering because it only requires song attributes and a single user profile, making the logic transparent and easy to inspect.
 
-Some prompts to answer:
+**Algorithm Recipe:**
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+- `+2.0` points if the song's genre matches the user's favorite genre
+- `+1.0` point if the song's mood matches the user's favorite mood
+- `+0.0 to 1.0` points based on how close the song's energy is to the user's target (calculated as `1.0 - |song_energy - target_energy|`)
+- `+0.5` bonus if the user likes acoustic music and the song has acousticness ≥ 0.7
 
-You can include a simple diagram or bullet list if helpful.
+The song with the highest total score is ranked first.
+
+**Features used per Song:** `genre`, `mood`, `energy`, `acousticness`
+
+**Features stored in UserProfile:** `favorite_genre`, `favorite_mood`, `target_energy`, `likes_acoustic`
+
+**Potential bias note:** Genre is worth twice as much as mood, so songs with a matching genre will almost always outrank songs that match in every other way. This could create a genre filter bubble.
 
 ---
 
@@ -41,171 +37,48 @@ You can include a simple diagram or bullet list if helpful.
    python -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
+   ```
 
-2. Install dependencies
+2. Install dependencies:
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 3. Run the app:
 
-```bash
-python -m src.main
-```
+   ```bash
+   python -m src.main
+   ```
 
 ### Running Tests
-
-Run the starter tests with:
 
 ```bash
 pytest
 ```
 
-You can add more tests in `tests/test_recommender.py`.
-
 ---
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
-
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+- **Default pop/happy profile:** Top results were "Sunrise City," "Bubble Tea Drive," and "Gym Hero" — all pop songs, which confirmed the genre weight dominates.
+- **Chill lofi profile** (`genre: lofi, mood: chill, energy: 0.4`): Correctly surfaced "Library Rain" and "Midnight Coding" at the top.
+- **High-energy rock profile** (`genre: rock, mood: intense, energy: 0.9`): "Storm Runner" and "Iron Sky" ranked first, which matched expectations.
+- **Weight experiment:** Doubling energy weight and halving genre weight caused more mixing across genres — "Gym Hero" (pop) appeared in rock results because of matching energy.
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+- The catalog is tiny (20 songs), so results are not truly diverse.
+- Genre dominates scoring — a chill lofi song will beat a great mood/energy match in another genre.
+- The system cannot learn from listening history; it always uses the same static profile.
+- Niche genres like folk or ambient are underrepresented, so users with those tastes get fewer good matches.
 
 ---
 
 ## Reflection
 
-Read and complete `model_card.md`:
+See [model_card.md](model_card.md) for the full model card and personal reflection.
 
-[**Model Card**](model_card.md)
-
-Write 1 to 2 paragraphs here about what you learned:
-
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
-
+Building this showed how even the simplest scoring rules can produce results that feel surprisingly "smart" — matching a genre and energy level is enough to make recommendations feel personal. However, it also revealed how easy it is to accidentally bake in bias: because genre is worth 2 points and mood is worth 1, the system quietly tells users that their genre matters twice as much as how a song makes them feel, which is not necessarily true. Real platforms have to make these same tradeoffs, just with thousands of features instead of five.
